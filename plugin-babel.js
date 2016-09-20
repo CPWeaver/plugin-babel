@@ -119,12 +119,7 @@ exports.translate = function(load, traceOpts) {
       if (load.metadata.format == 'cjs')
         throw new TypeError('plugin-babel does not support modular runtime for CJS module transpilations. Set babelOptions.modularRuntime: false if needed.');
       presets.push(runtimeTransform);
-    }
-    else {
-      if (load.metadata.format == 'cjs')
-        load.source = 'var babelHelpers = require("' + externalHelpersPath + '");' + load.source;
-      else
-        load.source = 'import babelHelpers from "' + externalHelpersPath + '";' + load.source;
+    } else {
       presets.push(externalHelpers);
     }
 
@@ -211,6 +206,13 @@ exports.translate = function(load, traceOpts) {
       load.metadata.format = outputESM ? 'esm' : 'register';
 
     load.metadata.sourceMap = output.map;
+
+    if (!babelOptions.modularRuntime) {
+      if (load.metadata.format == 'cjs')
+        output.code = 'var babelHelpers = require("' + externalHelpersPath + '");' + output.code;
+      else
+        output.code = 'import babelHelpers from "' + externalHelpersPath + '";' + output.code;
+    }
 
     return output.code;
   });
